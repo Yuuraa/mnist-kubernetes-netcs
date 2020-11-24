@@ -1,18 +1,19 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: train-mnist 
+  name: train-mnist-keras 
 spec:
   template:
     spec:
       containers:
-      - name: ml
+      - name: train-mnist-keras
         image: yoorachoi/train-mnist-keras:latest
         imagePullPolicy: IfNotPresent
         command: ["python", "train.py"]
         args: ['5', 'softmax', '0.5']
       restartPolicy: Never
       nodeSelector:
+        key: edges
 
   backoffLimit: 0
 
