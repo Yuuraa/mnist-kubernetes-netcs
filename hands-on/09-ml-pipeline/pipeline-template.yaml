@@ -1,0 +1,145 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: handson-09-ml-pipeline-{{ wfIdx }}
+spec:
+  entrypoint: entry
+  onExit: alarm-slack
+
+  ######################################
+  # Volumes
+  ######################################
+  volumeClaimTemplates:
+  - metadata:
+      name: wf-storage
+    spec:
+      accessModes:
+      - ReadWriteMany
+      resources:
+        requests:
+          storage: 10Gi
+      storageClassName: nfs-storage
+
+  volumes:
+  - name: model-storage
+    persistentVolumeClaim:
+      claimName: model-storage
+
+  templates:
+  ######################################
+  # Templates
+  ######################################
+  # onExit
+  - name: alarm-slack
+    container:
+      image: byrnedo/alpine-curl
+      imagePullPolicy: Always
+      command: [/bin/sh]
+      args:
+      - "-c"
+      - >
+         curl -X POST -H 'Content-type: application/json' --data '{"text": "Training Done!"}' "{{ slack_url }}"
+
+  - name: input
+    inputs:
+    container:
+      imagePullPolicy: Always
+      image: !IMAGE
+      command: ["python", "input.py"]
+      args:
+      - !BUCKET_NAME
+      - "data.npz"
+      - "/wf_storage"
+      volumeMounts:
+      - mountPath: /model_storage
+        name: model-storage
+      - mountPath: /wf_storage
+        name: wf-storage
+      resources:
+        limits:
+          cpu: 1
+          memory: 1Gi
+    nodeSelector:
+      role: train-cpu
+
+  - name: train
+    inputs:
+      parameters:
+      - name: epoch
+      - name: activate
+      - name: dropout
+      - name: data-path
+    container:
+      imagePullPolicy: Always
+      image: !IMAGE
+      command: ["python", "train.py"]
+      args:
+      {% raw %}
+      - "{{inputs.parameters.epoch}}"
+      - "{{inputs.parameters.activate}}"
+      - "{{inputs.parameters.dropout}}"
+      - "{{inputs.parameters.data-path}}"
+      {% endraw %}
+      volumeMounts:
+      - mountPath: /model_storage
+        name: model-storage
+      - mountPath: /wf_storage
+        name: wf-storage
+      resources:
+        limits:
+          cpu: 1
+          memory: 4Gi
+    nodeSelector:
+      role: train-mem
+
+  - name: output
+    inputs:
+    container:
+      imagePullPolicy: Always
+      image: !IMAGE
+      command: ["python", "output.py"]
+      args:
+      - !BUCKET_NAME
+      - "/model_storage"
+      volumeMounts:
+      - mountPath: /model_storage
+        name: model-storage
+      - mountPath: /wf_storage
+        name: wf-storage
+      resources:
+        limits:
+          cpu: 1
+          memory: 1Gi
+    nodeSelector:
+      role: train-cpu
+
+  ######################################
+  # Workflows
+  ######################################
+  - name: entry
+    dag:
+      tasks:
+      - name: input-A
+        template: input
+      {% for step in steps %}
+      - name: {{ step['name'] }}
+        template: train
+        arguments:
+            parameters:
+            - name: epoch
+              value: "{{ step['epoch'] }}"
+            - name: activate
+              value: "{{ step['activate'] }}"
+            - name: dropout
+              value: "{{ step['dropout'] }}"
+            - name: data-path
+              value: "{{ step['data-path'] }}"
+        dependencies:
+          - input-A
+      {% endfor %}
+      - name: output-C
+        template: output
+        dependencies:
+        {% for step in steps -%}
+        - {{ step['name'] }}
+        {% endfor %}

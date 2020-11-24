@@ -1,0 +1,183 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: handson-09-ml-pipeline
+spec:
+  entrypoint: entry
+  onExit: alarm-slack
+
+  ######################################
+  # Volumes
+  ######################################
+  volumeClaimTemplates:
+  - metadata:
+      name: wf-storage
+    spec:
+      accessModes:
+      - ReadWriteMany
+      resources:
+        requests:
+          storage: 10Gi
+      storageClassName: nfs-storage
+
+  volumes:
+  - name: model-storage
+    persistentVolumeClaim:
+      claimName: model-storage
+
+  templates:
+  ######################################
+  # Templates
+  ######################################
+  # onExit
+  - name: alarm-slack
+    container:
+      image: byrnedo/alpine-curl
+      imagePullPolicy: Always
+      command: [/bin/sh]
+      args:
+      - "-c"
+      - >
+         curl -X POST -H 'Content-type: application/json' --data '{"text": "Training Done!"}' "https://hooks.slack.com/services/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"
+
+  # Step Definitions
+  - name: input
+    inputs:
+    container:
+      imagePullPolicy: Always
+      image: !IMAGE
+      command: ["python", "input.py"]
+      args:
+      - !BUCKET_NAME
+      - "data.npz"  
+      - "/wf_storage"  
+      env:
+      - name: ACCESS_KEY
+        value: !ACCESS_KEY
+      - name: SECRET_KEY
+        value: !SECRET_KEY
+      volumeMounts:
+      - mountPath: /model_storage
+        name: model-storage
+      - mountPath: /wf_storage
+        name: wf-storage
+      resources:
+        limits:
+          cpu: 1
+          memory: 1Gi
+    nodeSelector:
+      role: train-cpu
+
+  - name: train
+    inputs:
+      parameters:
+      - name: epoch
+      - name: activate
+      - name: dropout
+      - name: data-path
+    container:
+      imagePullPolicy: Always
+      image: !IMAGE
+      command: ["python", "train.py"]
+      args:
+      - "{{inputs.parameters.epoch}}"
+      - "{{inputs.parameters.activate}}"
+      - "{{inputs.parameters.dropout}}"
+      - "{{inputs.parameters.data-path}}"
+      volumeMounts:
+      - mountPath: /model_storage
+        name: model-storage
+      - mountPath: /wf_storage
+        name: wf-storage
+      resources:
+        limits:
+          cpu: 1
+          memory: 4Gi
+    nodeSelector:
+      role: train-mem
+#    tolerations:
+#    - key: nvidia.com/gpu
+#      value: present
+#      effect: NoSchedule
+  - name: output
+    inputs:
+    container:
+      imagePullPolicy: Always
+      image: !IMAGE
+      command: ["python", "output.py"]
+      args:
+      - !BUCKET_NAME
+      - "/model_storage"  
+      env:
+      - name: ACCESS_KEY
+        value: !ACCESS_KEY
+      - name: SECRET_KEY
+        value: !SECRET_KEY
+      volumeMounts:
+      - mountPath: /model_storage
+        name: model-storage
+      - mountPath: /wf_storage
+        name: wf-storage
+      resources:
+        limits:
+          cpu: 1
+          memory: 1Gi
+    nodeSelector:
+      role: train-cpu
+
+  ######################################
+  # Workflows
+  ######################################
+  - name: entry
+    dag:
+      tasks:
+      - name: input-A
+        template: input
+      - name: train-B01
+        template: train
+        arguments:
+          parameters:
+          - name: epoch
+            value: "1"
+          - name: activate
+            value: "relu"
+          - name: dropout
+            value: "0.1"
+          - name: data-path
+            value: "/wf_storage/data.npz"
+        dependencies:
+          - input-A
+      - name: train-B02
+        template: train
+        arguments:
+          parameters:
+          - name: epoch
+            value: "2"
+          - name: activate
+            value: "tanh"
+          - name: dropout
+            value: "0.5"
+          - name: data-path
+            value: "/wf_storage/data.npz"
+        dependencies:
+          - input-A
+      - name: train-B03
+        template: train
+        arguments:
+          parameters:
+          - name: epoch
+            value: "2"
+          - name: activate
+            value: "linear"
+          - name: dropout
+            value: "0.5"
+          - name: data-path
+            value: "/wf_storage/data.npz"
+        dependencies:
+          - input-A
+      - name: output-C
+        template: output
+        dependencies:
+          - train-B01
+          - train-B02
+          - train-B03
