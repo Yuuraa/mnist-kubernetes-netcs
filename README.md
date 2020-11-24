@@ -1,17 +1,11 @@
-# Open Infra & Cloud Native Days Korea 2019 Track 7
+# Scale ML job with Kubernetes - On on-premise kubernetes cluster
 
 ## How to scale your ML job with Kubernetes
 
-![](https://img.shields.io/badge/HandsOn-Session-green.svg)
 * 내용: 데이터과학자, 분석가 입장에서 조금 더 편리하게 기계학습을 실험해 보고 여러 서버에 걸쳐서 손쉽게 기계학습 잡을 확장시키는 방법에 대해서 알아보도록 하겠습니다.
 * 워크샵 소요시간: 2시간~2시간30분
-* 준비 사항: AWS or GCP 계정
-* 난이도: 중
-* 대상 청중
-    - 쿠버네티스를 활용하여 ML job 실행에 관심 있으신 분
-    - Kubernetes 기본 지식(pod, job 등)
-    - Job, Argo workflow  등을 실습할 예정입니다.
-    - 이미 kubeflow 등 쿠버네티스를 이용한 ML툴을 사용해 보신 분들한테는 쉬울 수 있습니다.
+* 준비 사항: 쿠버네티스 클러스터
+
 
 ## 워크샵 순서
 1. [Why Kubernetes? (간략 소개)](#1-why-kubernetes)
