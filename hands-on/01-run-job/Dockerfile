@@ -1,7 +1,6 @@
 FROM python:3.6.8-stretch
 
-RUN pip install tensorflow==1.5
-RUN pip install keras==2.0.8
-RUN pip install h5py==2.7.1
+RUN pip install torch==1.5.1
+RUN pip install torchvision==0.6.1
 
-ADD train.py .
+ADD train-pytorch.py .
