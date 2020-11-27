@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.nn.iinit
+import torch.nn.init
 import torch.optim as optim
 import torchvision.datasets as dsets
 import torchvision.transforms as transforms
