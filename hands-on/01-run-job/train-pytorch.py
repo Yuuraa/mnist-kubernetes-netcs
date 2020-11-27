@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 # Choose the device
 isgpu = torch.cuda.is_available()
-device = torch.device('gpu' if isgpu else 'cpu')
+device = torch.device('cuda' if isgpu else 'cpu')
 
 # For reproducibility
 learning_rate = 0.001

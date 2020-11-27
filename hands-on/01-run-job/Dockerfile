@@ -1,6 +1,5 @@
-FROM python:3.6.8-stretch
+FROM pytorch/pytorch:latest
 
-RUN pip install torch==1.5.1
-RUN pip install torchvision==0.6.1
+RUN pip install torchvision
 
 ADD train-pytorch.py .
