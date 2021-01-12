@@ -6,11 +6,12 @@ spec:
   template:
     spec:
       containers:
-      - name: mnist-pytorch-yr
-        image: yoorachoi/minst-netcs:latest
+      - name: mnist-netcs
+        image: yoorachoi/mnist-netcs:latest
         imagePullPolicy: IfNotPresent
-        command: ["python3", "train.py"]
-        args: ['5', 'softmax', '0.5']
+        command: ["python3", "train-pytorch.py"]
+        #args: ['5', 'softmax', '0.5']
+        #terminationMessagePath: "/tmp/my-log"
       restartPolicy: Never
       nodeSelector:
         key: edges
