@@ -18,8 +18,10 @@ training_epochs = 15
 batch_size = 100
 
 # Download & Load MNIST data
-mnist_train = dsets.MNIST(root='../mnist_data/', train=True, transform=transforms.ToTensor(), download=True)
-mnist_test = dsets.MNIST(root='../mnist_data/', train=False, transform=transforms.ToTensor(), download=True)
+#mnist_train = dsets.MNIST(root='../mnist_data/', train=True, transform=transforms.ToTensor(), download=True)
+#mnist_test = dsets.MNIST(root='../mnist_data/', train=False, transform=transforms.ToTensor(), download=True)
+mnist_train = dsets.MNIST(root='mnist_data/', train=True, transform=transforms.ToTensor(), download=True)
+mnist_test = dsets.MNIST(root='mnist_data/', train=False, transform=transforms.ToTensor(), download=True)
 
 data_loader = torch.utils.data.DataLoader(dataset=mnist_train, batch_size=batch_size, shuffle=True, drop_last=True)
 

@@ -1,16 +1,17 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: train-mnist-keras 
+  name: mnist-pytorch-yr 
 spec:
   template:
     spec:
       containers:
-      - name: train-mnist-keras
-        image: yoorachoi/train-mnist-keras:latest
+      - name: mnist-netcs
+        image: yoorachoi/mnist-netcs:latest
         imagePullPolicy: IfNotPresent
-        command: ["python", "train.py"]
-        args: ['5', 'softmax', '0.5']
+        command: ["python3", "train-pytorch.py"]
+        #args: ['5', 'softmax', '0.5']
+        #terminationMessagePath: "/tmp/my-log"
       restartPolicy: Never
       nodeSelector:
         key: edges

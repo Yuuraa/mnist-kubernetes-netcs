@@ -1,5 +1,5 @@
 FROM pytorch/pytorch:latest
 
-RUN pip install torchvision
+ADD . .
 
-ADD train-pytorch.py .
+RUN pip install -r requirements.txt
