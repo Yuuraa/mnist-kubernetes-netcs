@@ -1,25 +1,23 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: handson-02
+  name: mnist-yr-store 
 spec:
   template:
     spec:
       containers:
-      - name: ml
-        image: !IMAGE
+      - name: mnist-yr-store
+        image: yoorachoi/mnist-netcs:latest
         imagePullPolicy: Always
-        command: ["python", "train.py"]
-        args: ['5', 'softmax', '0.5']
+        command: ["python3", "train-pytorch.py"]
         volumeMounts:
         - mountPath: "/model_storage"
-          name: model-storage
+          name: yr-pv-store
       restartPolicy: Never
       nodeSelector:
-        role: train-cpu
+        key: edges
       volumes:
-      - name: model-storage
+      - name: yr-pv-store
         persistentVolumeClaim:
-          claimName: model-storage
+          claimName: yr-pv-claim
   backoffLimit: 0
-
