@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: yr-pv-pod
+spec:
+  volumes:
+  - name: yr-pv-storage
+    persistentVolumeClaim:
+      claimName: yr-pv-claim
+  containers:
+  - name: yr-pv-container
+    image: yoorachoi/mnist-netcs:latest
+    volumeMounts:
+    - mountPath: "/model-storage"
+      name: yr-pv-storage
