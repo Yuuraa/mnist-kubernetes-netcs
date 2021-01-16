@@ -1,7 +1,5 @@
-FROM python:3.6.8-stretch
+FROM pytorch/pytorch:latest
 
-RUN pip install tensorflow==1.5
-RUN pip install keras==2.0.8
-RUN pip install h5py==2.7.1
+COPY train-pytorch.py mnist_data/ ./
 
-ADD train.py .
+RUN pip install -r requirements.txt
