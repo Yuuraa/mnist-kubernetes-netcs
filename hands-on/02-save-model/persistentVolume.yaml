@@ -11,5 +11,5 @@ spec:
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: /home/netcs/yura/mnist-kubernetes-netcs/hands-on/02-save-model/storage
+    path: [your-local-path-to-storage]/storage
 
