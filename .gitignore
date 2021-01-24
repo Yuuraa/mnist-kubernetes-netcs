@@ -1,3 +1,4 @@
 *.swp
 hands-on/01-run-job/mnist_data/
 hands-on/mnist_data/
+hands-on/02-save-model/storage
